@@ -8,15 +8,10 @@ OBJECT_SIZE = 50
 
 
 class Point:
-    def __init__(self) -> None:
-        self.size = OBJECT_SIZE
+    def __init__(self, size) -> None:
+        self.size = size
         self.position = self.generateRandomPosition()
         self.color = 'red'
-
-    def draw(self, screen: pygame.Surface) -> None:
-        pointRect = pygame.Rect(
-            self.position.x, self.position.y, self.size, self.size)
-        pygame.draw.rect(screen, self.color, pointRect)
 
     def generateRandomPosition(self) -> Vector2:
         """
@@ -30,33 +25,36 @@ class Point:
         height = randint(0, (SCREEN_HEIGHT//OBJECT_SIZE) - 1) * OBJECT_SIZE
         return Vector2(width, height)
 
+    def changePosition(self) -> None:
+        self.position = self.generateRandomPosition()
+
 
 class Snake:
-    def __init__(self) -> None:
-        self.size = OBJECT_SIZE
+    def __init__(self, size) -> None:
+        self.size = size
         self.body = [Vector2(100, 100), Vector2(75, 100), Vector2(50, 100)]
         self.direction = Vector2()
         self.color = 'blue'
 
-    def draw(self, screen: pygame.Surface) -> None:
-        for pos in self.body:
-            snakeRect = pygame.Rect(pos.x, pos.y, self.size, self.size)
-            pygame.draw.rect(screen, self.color, snakeRect)
-
     def move(self) -> None:
-        if self.direction != Vector2(0, 0):
-            bodyCopy = self.body[:-1]
-            bodyCopy.insert(0, bodyCopy[0] + self.direction)
-            self.body = bodyCopy
+        if self.direction == Vector2():
+            return
+        bodyCopy = self.body[:-1]
+        bodyCopy.insert(0, bodyCopy[0] + self.direction)
+        self.body = bodyCopy
 
     def lengthen(self) -> None:
         self.body.append(self.body[-1])
 
-    def isColliding(self) -> bool:
-        return self.body[0] in self.body[1:]
-
-    def isOutOfBounds(self) -> bool:
-        return self.body[0].x < 0 or self.body[0].x >= SCREEN_WIDTH or self.body[0].y < 0 or self.body[0].y >= SCREEN_HEIGHT
+    def changeDirection(self, event):
+        if event == pygame.K_DOWN and self.direction.y != -self.size:
+            self.direction = Vector2(0, self.size)
+        if event == pygame.K_UP and self.direction.y != self.size:
+            self.direction = Vector2(0, -self.size)
+        if event == pygame.K_LEFT and self.direction.x != self.size:
+            self.direction = Vector2(-self.size, 0)
+        if event == pygame.K_RIGHT and self.direction.x != -self.size:
+            self.direction = Vector2(self.size, 0)
 
 
 class Score:
@@ -65,8 +63,3 @@ class Score:
 
     def update(self) -> None:
         self.score += 1
-
-    def draw(self, screen: pygame.Surface) -> None:
-        font = pygame.font.Font(None, 36)
-        scoreText = font.render(f"Score: {self.score}", True, 'white')
-        screen.blit(scoreText, (10, 10))
