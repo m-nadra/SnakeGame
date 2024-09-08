@@ -20,8 +20,8 @@ class GameProperties:
 class Object:
     def __init__(self) -> None:
         self.size = GameProperties.objectSize
-        self.snake = Snake(self.size)
-        self.point = Point(self.size, self.generateRandomPosition())
+        self.snake = Snake(self.size, 'blue')
+        self.point = Point(self.size, self.generateRandomPosition(), 'red')
         self.score = Score()
 
     def isSnakeGotPoint(self):
