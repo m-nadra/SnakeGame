@@ -1,17 +1,63 @@
 import pygame
+from random import randint
+from pygame.math import Vector2
 from objects import Point, Snake, Score
 from sys import exit
 
 
-class GameScreen:
-    def __init__(self, width, height, size, snake, point, score) -> None:
-        self.width = width
-        self.height = height
-        self.objectSize = size
-        self.screen = pygame.display.set_mode((width, height))
-        self.snake = snake
-        self.point = point
-        self.score = score
+class GameProperties:
+    width = 800
+    height = 600
+    objectSize = 50
+
+    @classmethod
+    def set(cls, width, height, objectSize):
+        cls.width = width
+        cls.height = height
+        cls.objectSize = objectSize
+
+
+class Object:
+    def __init__(self) -> None:
+        self.size = GameProperties.objectSize
+        self.snake = Snake(self.size)
+        self.point = Point(self.size, self.generateRandomPosition())
+        self.score = Score()
+
+    def isSnakeGotPoint(self):
+        return self.snake.body[0] == self.point.position
+
+    def isSnakeColliding(self) -> bool:
+        return self.snake.body[0] in self.snake.body[1:]
+
+    def isSnakeOutOfBounds(self) -> bool:
+        return self.snake.body[0].x < 0 or self.snake.body[0].x >= GameProperties.width or self.snake.body[0].y < 0 or self.snake.body[0].y >= GameProperties.height
+
+    def changePointPosition(self) -> None:
+        self.point.position = self.generateRandomPosition()
+
+    def generateRandomPosition(self) -> Vector2:
+        """
+        Generate a random position for the object.
+        Position is calculated by multiplying a random number between 0 and the screen width/height by the object size.
+        This ensures that the objects are always in the grid and allow modifying game resolution.
+        Returns:
+            tuple: Position of the object, first element is width and second is height.
+        """
+        width = randint(
+            0, (GameProperties.width//GameProperties.objectSize) - 1) * GameProperties.objectSize
+        height = randint(0, (GameProperties.height //
+                         GameProperties.objectSize) - 1) * GameProperties.objectSize
+        return Vector2(width, height)
+
+
+class Renderer:
+    def __init__(self) -> None:
+        self.width = GameProperties.width
+        self.height = GameProperties.height
+        self.objectSize = GameProperties.objectSize
+        self.screen = pygame.display.set_mode((self.width, self.height))
+        self.object = Object()
 
     def drawGrass(self) -> None:
         for row in range(self.width // self.objectSize):
@@ -25,12 +71,13 @@ class GameScreen:
 
     def drawPoint(self) -> None:
         pointRect = pygame.Rect(
-            self.point.position.x, self.point.position.y, self.point.size, self.point.size)
-        pygame.draw.rect(self.screen, self.point.color, pointRect)
+            self.object.point.position.x, self.object.point.position.y, self.objectSize, self.objectSize)
+        pygame.draw.rect(self.screen, self.object.point.color, pointRect)
 
     def drawScore(self) -> None:
         font = pygame.font.Font(None, 36)
-        scoreText = font.render(f"Score: {self.score.score}", True, 'white')
+        scoreText = font.render(
+            f"Score: {self.object.score.score}", True, 'white')
         self.screen.blit(scoreText, (10, 10))
 
     def drawGameOverMessage(self):
@@ -41,10 +88,10 @@ class GameScreen:
         self.screen.blit(text, textRect)
 
     def drawSnake(self) -> None:
-        for pos in self.snake.body:
+        for pos in self.object.snake.body:
             snakeRect = pygame.Rect(
-                pos.x, pos.y, self.snake.size, self.snake.size)
-            pygame.draw.rect(self.screen, self.snake.color, snakeRect)
+                pos.x, pos.y, self.object.snake.size, self.object.snake.size)
+            pygame.draw.rect(self.screen, self.object.snake.color, snakeRect)
 
 
 class Game:
@@ -52,22 +99,19 @@ class Game:
         pygame.init()
         pygame.font.init()
         pygame.display.set_caption("Snake Game")
-        self.snake = Snake(50)
-        self.point = Point(50)
-        self.score = Score()
-        self.gameScreen = GameScreen(
-            800, 600, 50, self.snake, self.point, self.score)
+        GameProperties.set(800, 600, 50)
+        self.renderer = Renderer()
 
     def drawObjects(self):
-        self.gameScreen.drawGrass()
-        self.gameScreen.drawSnake()
-        self.gameScreen.drawPoint()
-        self.gameScreen.drawScore()
+        self.renderer.drawGrass()
+        self.renderer.drawSnake()
+        self.renderer.drawPoint()
+        self.renderer.drawScore()
         pygame.display.flip()
 
-    def gameOver(self):
-        self.gameScreen.screen.fill((0, 0, 0))
-        self.gameScreen.drawGameOverMessage()
+    def printGameOverScreen(self):
+        self.renderer.screen.fill((0, 0, 0))
+        self.renderer.drawGameOverMessage()
         pygame.display.flip()
         while True:
             for event in pygame.event.get():
@@ -77,12 +121,3 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONUP:
                     self.__init__()
                     return
-
-    def isSnakeGotPoint(self):
-        return self.snake.body[0] == self.point.position
-
-    def isSnakeColliding(self) -> bool:
-        return self.snake.body[0] in self.snake.body[1:]
-
-    def isSnakeOutOfBounds(self) -> bool:
-        return self.snake.body[0].x < 0 or self.snake.body[0].x >= self.gameScreen.width or self.snake.body[0].y < 0 or self.snake.body[0].y >= self.gameScreen.height

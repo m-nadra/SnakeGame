@@ -1,32 +1,12 @@
 import pygame
 from pygame.math import Vector2
-from random import randint
-
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-OBJECT_SIZE = 50
 
 
 class Point:
-    def __init__(self, size) -> None:
+    def __init__(self, size, position) -> None:
         self.size = size
-        self.position = self.generateRandomPosition()
+        self.position = position
         self.color = 'red'
-
-    def generateRandomPosition(self) -> Vector2:
-        """
-        Generate a random position for the object.
-        Position is calculated by multiplying a random number between 0 and the screen width/height by the object size.
-        This ensures that the objects are always in the grid and allow modifying game resolution.
-        Returns:
-            tuple: Position of the object, first element is width and second is height.
-        """
-        width = randint(0, (SCREEN_WIDTH//OBJECT_SIZE) - 1) * OBJECT_SIZE
-        height = randint(0, (SCREEN_HEIGHT//OBJECT_SIZE) - 1) * OBJECT_SIZE
-        return Vector2(width, height)
-
-    def changePosition(self) -> None:
-        self.position = self.generateRandomPosition()
 
 
 class Snake:
