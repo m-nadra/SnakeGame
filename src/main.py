@@ -1,13 +1,16 @@
+"""Main module of the game. It contains the main function that runs the game."""
+
 import pygame
-from game import Game
+from game import GameProperties, Renderer
 from sys import exit
 
 
 def main() -> None:
-    """Main function to run the game"""
+    pygame.init()
+    pygame.display.set_caption("Snake Game")
 
-    game = Game()
-    objects = game.renderer.object
+    GameProperties.set(800, 600, 50)
+    game = Renderer()
 
     SCREEN_UPDATE = pygame.USEREVENT
     pygame.time.set_timer(SCREEN_UPDATE, 150)
@@ -19,17 +22,15 @@ def main() -> None:
                 exit(0)
 
             if event.type == SCREEN_UPDATE:
-                objects.snake.move()
-                if objects.isSnakeGotPoint():
-                    objects.changePointPosition()
-                    objects.snake.lengthen()
-                    objects.score.update()
-                if objects.isSnakeOutOfBounds() or objects.isSnakeColliding():
-                    game.printGameOverScreen()
+                game.object.snake.move()
+                if game.object.isSnakeGotPoint():
+                    game.object.update()
+                if game.object.isSnakeOutOfBounds() or game.object.isSnakeColliding():
+                    game.drawGameOverScreen()
                 game.drawObjects()
 
             if event.type == pygame.KEYDOWN:
-                objects.snake.changeDirection(event.key)
+                game.object.snake.changeDirection(event.key)
 
 
 if __name__ == "__main__":

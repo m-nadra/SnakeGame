@@ -6,6 +6,7 @@ from sys import exit
 
 
 class GameProperties:
+    """Contains the properties of the game such as width, height, and object size."""
     width = 800
     height = 600
     objectSize = 50
@@ -17,24 +18,27 @@ class GameProperties:
         cls.objectSize = objectSize
 
 
-class Object:
+class Object(GameProperties):
+    """Contains methods to check object properties and update the game state."""
+
     def __init__(self) -> None:
-        self.size = GameProperties.objectSize
-        self.snake = Snake(self.size, 'blue')
-        self.point = Point(self.size, self.generateRandomPosition(), 'red')
+        self.snake = Snake(self.objectSize, 'blue')
+        self.point = Point(
+            self.objectSize, self.generateRandomPosition(), 'red')
         self.score = Score()
 
-    def isSnakeGotPoint(self):
+    def isSnakeGotPoint(self) -> bool:
         return self.snake.body[0] == self.point.position
 
     def isSnakeColliding(self) -> bool:
         return self.snake.body[0] in self.snake.body[1:]
 
     def isSnakeOutOfBounds(self) -> bool:
-        return self.snake.body[0].x < 0 or self.snake.body[0].x >= GameProperties.width or self.snake.body[0].y < 0 or self.snake.body[0].y >= GameProperties.height
+        return self.snake.body[0].x < 0 or self.snake.body[0].x >= self.width or self.snake.body[0].y < 0 or self.snake.body[0].y >= self.height
 
     def changePointPosition(self) -> None:
-        self.point.position = self.generateRandomPosition()
+        while self.point.position in self.snake.body:
+            self.point.position = self.generateRandomPosition()
 
     def generateRandomPosition(self) -> Vector2:
         """
@@ -50,14 +54,23 @@ class Object:
                          GameProperties.objectSize) - 1) * GameProperties.objectSize
         return Vector2(width, height)
 
+    def update(self) -> None:
+        """Execute the necessary updates when the snake gets a point."""
+        self.changePointPosition()
+        self.snake.lengthen()
+        self.score.update()
+        try:
+            pygame.mixer.Sound("sounds\snakeGotPoint.mp3").play()
+        except FileNotFoundError:
+            pass
 
-class Renderer:
+
+class Renderer(GameProperties):
+    """Contains methods to draw the game objects on the screen."""
+
     def __init__(self) -> None:
-        self.width = GameProperties.width
-        self.height = GameProperties.height
-        self.objectSize = GameProperties.objectSize
-        self.screen = pygame.display.set_mode((self.width, self.height))
         self.object = Object()
+        self.screen = pygame.display.set_mode((self.width, self.height))
 
     def drawGrass(self) -> None:
         for row in range(self.width // self.objectSize):
@@ -93,25 +106,16 @@ class Renderer:
                 pos.x, pos.y, self.object.snake.size, self.object.snake.size)
             pygame.draw.rect(self.screen, self.object.snake.color, snakeRect)
 
-
-class Game:
-    def __init__(self) -> None:
-        pygame.init()
-        pygame.font.init()
-        pygame.display.set_caption("Snake Game")
-        GameProperties.set(800, 600, 50)
-        self.renderer = Renderer()
-
     def drawObjects(self):
-        self.renderer.drawGrass()
-        self.renderer.drawSnake()
-        self.renderer.drawPoint()
-        self.renderer.drawScore()
+        self.drawGrass()
+        self.drawSnake()
+        self.drawPoint()
+        self.drawScore()
         pygame.display.flip()
 
-    def printGameOverScreen(self):
-        self.renderer.screen.fill((0, 0, 0))
-        self.renderer.drawGameOverMessage()
+    def drawGameOverScreen(self):
+        self.screen.fill((0, 0, 0))
+        self.drawGameOverMessage()
         pygame.display.flip()
         while True:
             for event in pygame.event.get():
