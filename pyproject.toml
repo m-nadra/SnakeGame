@@ -4,13 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "SnakeGame"
-version = "0.1.0"
+version = "1.0.0"
 description = "Snake Game in Python"
 authors = [{name = "Mikołaj Nadra", email = "m.nadra@proton.me"}] 
 readme = "README.md"
 dependencies = [
     "pygame = ^2.6.0"
 ]
-
-[project.scripts]
-play = "src.main:main"
